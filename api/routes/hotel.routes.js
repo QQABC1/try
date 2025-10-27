@@ -1,19 +1,22 @@
-import express from 'express';
-const router = express.Router();
-import authController from '../controllers/authController.js';
+import { Router } from 'express';
+import {
+  getHotels,
+  createHotels,
+  updateHotels,
+  deleteHotels
+} from '../controllers/hotel/hotel.js';
+//import auth from '../middleware/auth.js';
+//import adminCheck from '../middleware/adminCheck.js';
 
-// 用户注册
-router.post('/register', 
-  authController.register
-);
+const router = Router();
 
-// 用户登录
-router.post('/login', 
-  authController.login
-);
+// 公共接口
+router.get('/', getHotels);
 
-// 社交登录路由示例
-router.get('/google', authController.googleLogin);
-router.get('/google/callback', authController.googleCallback);
-
+// 管理接口
+/*router.post('/', auth, adminCheck, createHotel);
+router.route('/:id')
+  .put(auth, adminCheck, updateHotel)
+  .delete(auth, adminCheck, deleteHotel);
+*/
 export default router;

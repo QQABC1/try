@@ -4,6 +4,8 @@ import express from 'express';
 import authRoutes from './routes/auth.routes.js'
 import cors from"cors"
 import bookingRoutes from './routes/booking.routes.js';
+import hotelRoutes from './routes/hotel.routes.js'
+//import roomRoutes from './routes/room.routes.js'
 
 const app = express();
 //app使用的库
@@ -23,6 +25,9 @@ app.get('/api/test', (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/bookings", bookingRoutes);
+//app.use("/api/rooms", roomRoutes);
+app.use("/api/hotels", hotelRoutes);
+
 
 //测试数据库
 async function startServer() {

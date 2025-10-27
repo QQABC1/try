@@ -1,74 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import HotelCard from '../components/HotelCard';
 import RatingStars from '../components/RatingStars';
 
 const HotelListPage = () => {
-  // 模拟酒店数据
-  const mockHotels = [
-    {
-      id: 1,
-      imageUrl: "https://picsum.photos/300/200?random=1",
-      title: "三亚海棠湾豪华度假酒店",
-      rating: 4.8,
-      price: 1299,
-      location: "三亚市海棠湾区",
-      amenities: ["私人海滩", "无边泳池", "免费早餐"]
-    },
-    {
-      id: 2,
-      imageUrl: "https://picsum.photos/300/200?random=2",
-      title: "上海外滩江景酒店",
-      rating: 4.6,
-      price: 1599,
-      location: "上海市黄浦区外滩",
-      amenities: ["全景落地窗", "健身房", "24小时管家服务"]
-    },
-    {
-      id: 3,
-      imageUrl: "https://picsum.photos/300/200?random=3",
-      title: "北京王府井精品酒店",
-      rating: 4.7,
-      price: 999,
-      location: "北京市东城区王府井",
-      amenities: ["地铁直达", "商务中心", "免费WiFi"]
-    },
-    {
-      id: 4,
-      imageUrl: "https://picsum.photos/300/200?random=4",
-      title: "广州珠江新城酒店",
-      rating: 4.5,
-      price: 899,
-      location: "广州市天河区珠江新城",
-      amenities: ["高空观景台", "SPA", "自助早餐"]
-    },
-    {
-      id: 5,
-      imageUrl: "https://picsum.photos/300/200?random=5",
-      title: "成都春熙路酒店",
-      rating: 4.4,
-      price: 699,
-      location: "成都市锦江区春熙路",
-      amenities: ["步行街附近", "免费停车", "会议室"]
-    },
-    {
-      id: 6,
-      imageUrl: "https://picsum.photos/300/200?random=6",
-      title: "杭州西湖畔酒店",
-      rating: 4.9,
-      price: 1399,
-      location: "杭州市西湖区",
-      amenities: ["湖景房", "私人花园", "游船服务"]
-    }
-  ];
+  // 酒店数据状态
+  const [hotels, setHotels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // 分页和排序状态
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('rating-desc');
   const hotelsPerPage = 4; // 每页显示4个酒店
 
+  // 从API获取酒店数据
+  useEffect(() => {
+    const fetchHotels = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // 替换为您的API端点
+        const response = await fetch('/api/hotels');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch hotels');
+        }
+        
+        const data = await response.json();
+        console.log('API返回的数据:', data); // 添加日志，查看返回格式
+        
+        // 关键修改：从响应中提取实际的酒店数组
+        setHotels(data.data || []); // 如果data.data不存在，使用空数组
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchHotels();
+  }, []);
+
   // 排序函数
-  const sortedHotels = [...mockHotels].sort((a, b) => {
+  const sortedHotels = [...hotels].sort((a, b) => {
     if (sortBy === 'rating-desc') return b.rating - a.rating;
     if (sortBy === 'rating-asc') return a.rating - b.rating;
     return 0;
@@ -108,25 +84,51 @@ const HotelListPage = () => {
         </div>
       </div>
 
+      {/* 加载状态 */}
+      {loading && (
+        <div className="flex justify-center items-center py-16">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+
+      {/* 错误状态 */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <strong className="font-bold">错误：</strong>
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
+
       {/* 酒店列表 */}
-      <h2 className="text-2xl font-bold mb-8">热门酒店推荐</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {currentHotels.map(hotel => (
-          <Link to={`/hotel/${hotel.id}`} key={hotel.id} className="block">
-            <HotelCard
-              imageUrl={hotel.imageUrl}
-              title={hotel.title}
-              rating={hotel.rating}
-              price={hotel.price}
-              location={hotel.location}
-              amenities={hotel.amenities}
-            />
-          </Link>
-        ))}
-      </div>
+      {!loading && !error && hotels.length > 0 && (
+        <>
+          <h2 className="text-2xl font-bold mb-8">热门酒店推荐</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {currentHotels.map(hotel => (
+              <Link to={`/hotel/${hotel.id}`} key={hotel.id} className="block">
+                <HotelCard
+                  imageUrl={hotel.imageUrl}
+                  title={hotel.title}
+                  rating={hotel.rating}
+                  price={hotel.price}
+                  location={hotel.location}
+                  amenities={hotel.amenities}
+                />
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* 无酒店数据 */}
+      {!loading && !error && hotels.length === 0 && (
+        <div className="text-center py-16">
+          <p className="text-gray-500">暂无酒店数据</p>
+        </div>
+      )}
 
       {/* 分页导航 */}
-      {totalPages > 1 && (
+      {!loading && !error && totalPages > 1 && hotels.length > 0 && (
         <div className="mt-12 flex justify-center">
           <nav className="inline-flex rounded-md shadow">
             {/* 上一页按钮 */}
